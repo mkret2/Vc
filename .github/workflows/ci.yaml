@@ -35,9 +35,9 @@ jobs:
           - name: build-ubuntu-icpc
             CXX: icpc
             INSTALL_ONEAPI: true
-          #- name: build-ubuntu-icpx
-          #  CXX: icpx
-          #  INSTALL_ONEAPI: true
+          - name: build-ubuntu-icpx
+            CXX: icpx
+            INSTALL_ONEAPI: true
     steps:
       - uses: actions/checkout@v2
         with:
