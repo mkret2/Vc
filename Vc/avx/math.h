@@ -40,10 +40,14 @@ Vc_ALWAYS_INLINE AVX2::int_v    min(const AVX2::int_v    &x, const AVX2::int_v  
 Vc_ALWAYS_INLINE AVX2::uint_v   min(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_min_epu32(x.data(), y.data()); }
 Vc_ALWAYS_INLINE AVX2::short_v  min(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_min_epi16(x.data(), y.data()); }
 Vc_ALWAYS_INLINE AVX2::ushort_v min(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm256_min_epu16(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::schar_v  min(const AVX2::schar_v  &x, const AVX2::schar_v  &y) { return _mm256_min_epi8(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::uchar_v  min(const AVX2::uchar_v  &x, const AVX2::uchar_v  &y) { return _mm256_min_epu8(x.data(), y.data()); }
 Vc_ALWAYS_INLINE AVX2::int_v    max(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_max_epi32(x.data(), y.data()); }
 Vc_ALWAYS_INLINE AVX2::uint_v   max(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_max_epu32(x.data(), y.data()); }
 Vc_ALWAYS_INLINE AVX2::short_v  max(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_max_epi16(x.data(), y.data()); }
 Vc_ALWAYS_INLINE AVX2::ushort_v max(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm256_max_epu16(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::schar_v  max(const AVX2::schar_v  &x, const AVX2::schar_v  &y) { return _mm256_max_epi8(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::uchar_v  max(const AVX2::uchar_v  &x, const AVX2::uchar_v  &y) { return _mm256_max_epu8(x.data(), y.data()); }
 #endif
 Vc_ALWAYS_INLINE AVX2::float_v  min(const AVX2::float_v  &x, const AVX2::float_v  &y) { return _mm256_min_ps(x.data(), y.data()); }
 Vc_ALWAYS_INLINE AVX2::double_v min(const AVX2::double_v &x, const AVX2::double_v &y) { return _mm256_min_pd(x.data(), y.data()); }

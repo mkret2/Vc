@@ -611,6 +611,323 @@ namespace SSE
 #undef Vc_SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
+
+		
+        template <> struct VectorHelper<char> {
+            typedef __m128i VectorType;
+            typedef char EntryType;
+#define Vc_SUFFIX si128
+            Vc_OP_CAST_(or_) Vc_OP_CAST_(and_)
+                Vc_OP_CAST_(xor_) static Vc_ALWAYS_INLINE Vc_CONST VectorType zero()
+            {
+                return Vc_CAT2(_mm_setzero_, Vc_SUFFIX)();
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a,
+                                                                        __m128 mask)
+            {
+                return Vc_CAT2(_mm_and_, Vc_SUFFIX)(_mm_castps_si128(mask), a);
+            }
+#ifdef Vc_IMPL_SSE4_1
+            static Vc_ALWAYS_INLINE Vc_CONST __m128i concat(__m128i a, __m128i b)
+            {
+                return _mm_packus_epi16(a, b);
+            }
+#else
+            // FIXME too bad, but this is broken without SSE 4.1
+            // Copy pasted from unsigned short
+            // static Vc_ALWAYS_INLINE Vc_CONST __m128i concat(__m128i a, __m128i b)
+            //{
+            //    auto tmp0 = _mm_unpacklo_epi16(a, b);        // 0 4 X X 1 5 X X
+            //    auto tmp1 = _mm_unpackhi_epi16(a, b);        // 2 6 X X 3 7 X X
+            //    auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);  // 0 2 4 6 X X X X
+            //    auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);  // 1 3 5 7 X X X X
+            //    return _mm_unpacklo_epi16(tmp2, tmp3);       // 0 1 2 3 4 5 6 7
+            //}
+#endif
+            static Vc_ALWAYS_INLINE Vc_CONST __m128i expand0(__m128i x)
+            {
+                return _mm_unpacklo_epi8(x, _mm_setzero_si128());
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST __m128i expand1(__m128i x)
+            {
+                return _mm_unpackhi_epi8(x, _mm_setzero_si128());
+            }
+
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epi8
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()
+            {
+                return Vc_CAT2(_mm_setone_, Vc_SUFFIX)();
+            }
+
+            // X             template<unsigned int b> static Vc_ALWAYS_INLINE Vc_CONST
+            // VectorType mul(const VectorType a) { X                 switch (b) { X case
+            // 0: return zero(); X                     case    1: return a; X case    2:
+            // return _mm_slli_epi16(a,  1); X                     case    4: return
+            // _mm_slli_epi16(a, 2); X                     case    8: return
+            // _mm_slli_epi16(a,  3); X case   16: return _mm_slli_epi16(a,  4); X case
+            // 32: return _mm_slli_epi16(a,  5); X                     case   64: return
+            // _mm_slli_epi16(a, 6); X                     case  128: return
+            // _mm_slli_epi16(a,  7); X case  256: return _mm_slli_epi16(a,  8); X case
+            // 512: return _mm_slli_epi16(a,  9); X                     case 1024: return
+            // _mm_slli_epi16(a, 10); X                     case 2048: return
+            // _mm_slli_epi16(a, 11); X } X return mul(a, set(b)); X             }
+#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || Vc_IMPL_SSE4_1
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b)
+            {
+                return min_epi8(a, b);
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b)
+            {
+                return max_epi8(a, b);
+            }
+#endif
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epi8
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift)
+            {
+                return _mm_and_si128(_mm_slli_epi16(a, shift),
+                                     _mm_set1_epi8(0xff << shift));
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a,
+                                                                   int shift)
+            {
+                return _mm_and_si128(_mm_srli_epi16(a, shift),
+                                     _mm_set1_epi8(0xff >> shift));
+            }
+
+            static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3)
+            {
+                v1 = add(mul(v1, v2), v3);
+            }
+
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(const VectorType a,
+                                                            const VectorType b)
+            {
+                __m128i even = _mm_mullo_epi16(a, b);
+                __m128i odd = _mm_mullo_epi16(_mm_srli_epi16(a, 8), _mm_srli_epi16(b, 8));
+
+                return _mm_or_si128(_mm_slli_epi16(odd, 8),
+                                    _mm_srli_epi16(_mm_slli_epi16(even, 8), 8));
+            }
+
+#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(Vc_IMPL_SSE4_1)
+            Vc_OP(min) Vc_OP(max)  // XXX breaks for values with MSB set
+#endif
+                static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a)
+            {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                auto two_elems = _mm_cvtsi128_si32(a);  // two remaining elements
+                return std::min(static_cast<EntryType>(two_elems),
+                                static_cast<EntryType>(two_elems >> 8));
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a)
+            {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                auto two_elems = _mm_cvtsi128_si32(a);
+                return std::max(static_cast<EntryType>(two_elems),
+                                static_cast<EntryType>(two_elems >> 8));
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a)
+            {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                auto two_elems = _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+                return static_cast<EntryType>(two_elems) *
+                       static_cast<EntryType>(two_elems >> 8);
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a)
+            {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                auto two_elems = _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+                return static_cast<EntryType>(two_elems) +
+                       static_cast<EntryType>(two_elems >> 8);
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a)
+            {
+                return Vc_CAT2(_mm_set1_, Vc_SUFFIX)(a);
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType
+            set(const EntryType a, const EntryType b, const EntryType c,
+                const EntryType d, const EntryType e, const EntryType f,
+                const EntryType g, const EntryType h, const EntryType i,
+                const EntryType j, const EntryType k, const EntryType l,
+                const EntryType m, const EntryType n, const EntryType o,
+                const EntryType p)
+            {
+                return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b, c, d, e, f, g, h, i, j, k, l, m,
+                                                    n, o, p);
+            }
+
+            Vc_OP(add) Vc_OP(sub)
+#undef Vc_SUFFIX
+                static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a)
+            {
+                return a;
+            }
+        };
+
+
+		
+        template <> struct VectorHelper<unsigned char> {
+            typedef __m128i VectorType;
+            typedef char EntryType;
+#define Vc_SUFFIX si128
+            Vc_OP_CAST_(or_) Vc_OP_CAST_(and_)
+                Vc_OP_CAST_(xor_) static Vc_ALWAYS_INLINE Vc_CONST VectorType zero()
+            {
+                return Vc_CAT2(_mm_setzero_, Vc_SUFFIX)();
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a,
+                                                                        __m128 mask)
+            {
+                return Vc_CAT2(_mm_and_, Vc_SUFFIX)(_mm_castps_si128(mask), a);
+            }
+
+            static Vc_ALWAYS_INLINE Vc_CONST __m128i expand0(__m128i x)
+            {
+                return _mm_unpacklo_epi8(x, _mm_setzero_si128());
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST __m128i expand1(__m128i x)
+            {
+                return _mm_unpackhi_epi8(x, _mm_setzero_si128());
+            }
+
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epu8
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()
+            {
+                return Vc_CAT2(_mm_setone_, Vc_SUFFIX)();
+            }
+
+            // X             template<unsigned int b> static Vc_ALWAYS_INLINE Vc_CONST
+            // VectorType mul(const VectorType a) { X                 switch (b) { X case
+            // 0: return zero(); X                     case    1: return a; X case    2:
+            // return _mm_slli_epi16(a,  1); X                     case    4: return
+            // _mm_slli_epi16(a, 2); X                     case    8: return
+            // _mm_slli_epi16(a,  3); X case   16: return _mm_slli_epi16(a,  4); X case
+            // 32: return _mm_slli_epi16(a,  5); X                     case   64: return
+            // _mm_slli_epi16(a, 6); X                     case  128: return
+            // _mm_slli_epi16(a,  7); X case  256: return _mm_slli_epi16(a,  8); X case
+            // 512: return _mm_slli_epi16(a,  9); X                     case 1024: return
+            // _mm_slli_epi16(a, 10); X                     case 2048: return
+            // _mm_slli_epi16(a, 11); X } X return mul(a, set(b)); X             }
+#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || Vc_IMPL_SSE4_1
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b)
+            {
+                return min(a, b);
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b)
+            {
+                return max(a, b);
+            }
+#endif
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epi8
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift)
+            {
+                return _mm_and_si128(_mm_slli_epi16(a, shift),
+                                     _mm_set1_epi8(0xff << shift));
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a,
+                                                                   int shift)
+            {
+                return _mm_and_si128(_mm_srli_epi16(a, shift),
+                                     _mm_set1_epi8(0xff >> shift));
+            }
+
+            static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3)
+            {
+                v1 = add(mul(v1, v2), v3);
+            }
+
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(const VectorType a,
+                                                            const VectorType b)
+            {
+                __m128i even = _mm_mullo_epi16(a, b);
+                __m128i odd = _mm_mullo_epi16(_mm_srli_epi16(a, 8), _mm_srli_epi16(b, 8));
+
+                return _mm_or_si128(_mm_slli_epi16(odd, 8),
+                                    _mm_srli_epi16(_mm_slli_epi16(even, 8), 8));
+            }
+
+#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(Vc_IMPL_SSE4_1)
+            Vc_OP(min) Vc_OP(max)  // XXX breaks for values with MSB set
+#endif
+                static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a)
+            {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                auto two_elems = _mm_cvtsi128_si32(a);  // two remaining elements
+                return std::min(static_cast<EntryType>(two_elems),
+                                static_cast<EntryType>(two_elems >> 8));
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a)
+            {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                auto two_elems = _mm_cvtsi128_si32(a);
+                return std::max(static_cast<EntryType>(two_elems),
+                                static_cast<EntryType>(two_elems >> 8));
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a)
+            {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                auto two_elems = _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+                return static_cast<EntryType>(two_elems) *
+                       static_cast<EntryType>(two_elems >> 8);
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a)
+            {
+                // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
+                a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                auto two_elems = _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+                return static_cast<EntryType>(two_elems) +
+                       static_cast<EntryType>(two_elems >> 8);
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a)
+            {
+                return Vc_CAT2(_mm_set1_, Vc_SUFFIX)(a);
+            }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType
+            set(const EntryType a, const EntryType b, const EntryType c,
+                const EntryType d, const EntryType e, const EntryType f,
+                const EntryType g, const EntryType h, const EntryType i,
+                const EntryType j, const EntryType k, const EntryType l,
+                const EntryType m, const EntryType n, const EntryType o,
+                const EntryType p)
+            {
+                return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b, c, d, e, f, g, h, i, j, k, l, m,
+                                                    n, o, p);
+            }
+
+            Vc_OP(add) Vc_OP(sub)
+#undef Vc_SUFFIX
+                static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a)
+            {
+                return a;
+            }
+        };
 #undef Vc_OP1
 #undef Vc_OP
 #undef Vc_OP_

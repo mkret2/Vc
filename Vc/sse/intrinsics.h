@@ -77,9 +77,11 @@ namespace SseIntrinsics
     static Vc_INTRINSIC Vc_CONST __m128i _mm_setallone_si128() { return _mm_load_si128(reinterpret_cast<const __m128i *>(Common::AllBitsSet)); }
     static Vc_INTRINSIC Vc_CONST __m128d _mm_setallone_pd() { return _mm_load_pd(reinterpret_cast<const double *>(Common::AllBitsSet)); }
     static Vc_INTRINSIC Vc_CONST __m128  _mm_setallone_ps() { return _mm_load_ps(reinterpret_cast<const float *>(Common::AllBitsSet)); }
-
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epi16()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one16)); }
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
+	
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epi8()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one8)); }
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epu8()  { return _mm_setone_epi8(); }
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epi16() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one16)); }
+    static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epu16() { return _mm_setone_epi16(); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epi32()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one32)); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epu32()  { return _mm_setone_epi32(); }
 
@@ -541,6 +543,9 @@ namespace SseIntrinsics
     }
     Vc_INTRINSIC Vc_CONST __m128i min_epi8 (__m128i a, __m128i b) {
         return blendv_epi8(a, b, _mm_cmpgt_epi8 (a, b));
+    }
+    Vc_INTRINSIC Vc_CONST __m128i min_epu8 (__m128i a, __m128i b) {
+        return blendv_epi8(a, b, cmpgt_epu8 (a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i min_epi32(__m128i a, __m128i b) {
         return blendv_epi8(a, b, _mm_cmpgt_epi32(a, b));

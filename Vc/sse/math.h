@@ -33,6 +33,43 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+
+static Vc_ALWAYS_INLINE Vc_PURE SSE::int_v    min(const SSE::int_v    &x, const SSE::int_v    &y) { return SSE::min_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::uint_v   min(const SSE::uint_v   &x, const SSE::uint_v   &y) { return SSE::min_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::short_v  min(const SSE::short_v  &x, const SSE::short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v min(const SSE::ushort_v &x, const SSE::ushort_v &y) { return SSE::min_epu16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::schar_v  min(const SSE::schar_v  &x, const SSE::schar_v  &y) { return SSE::min_epi8(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::uchar_v  min(const SSE::uchar_v  &x, const SSE::uchar_v  &y) { return _mm_min_epu8(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::float_v  min(const SSE::float_v  &x, const SSE::float_v  &y) { return _mm_min_ps(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::double_v min(const SSE::double_v &x, const SSE::double_v &y) { return _mm_min_pd(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::int_v    max(const SSE::int_v    &x, const SSE::int_v    &y) { return SSE::max_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::uint_v   max(const SSE::uint_v   &x, const SSE::uint_v   &y) { return SSE::max_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::short_v  max(const SSE::short_v  &x, const SSE::short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v max(const SSE::ushort_v &x, const SSE::ushort_v &y) { return SSE::max_epu16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::schar_v  max(const SSE::schar_v  &x, const SSE::schar_v  &y) { return SSE::max_epi8(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::uchar_v  max(const SSE::uchar_v  &x, const SSE::uchar_v  &y) { return _mm_max_epu8(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::float_v  max(const SSE::float_v  &x, const SSE::float_v  &y) { return _mm_max_ps(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::double_v max(const SSE::double_v &x, const SSE::double_v &y) { return _mm_max_pd(x.data(), y.data()); }
+
+template <typename T,
+          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                               std::is_same<T, short>::value ||
+                               std::is_same<T, int>::value>>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> abs(Vector<T, VectorAbi::Sse> x)
+{
+    return SSE::VectorHelper<T>::abs(x.data());
+}
+
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> sqrt (const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::sqrt(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> rsqrt(const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::rsqrt(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> reciprocal(const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::reciprocal(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> round(const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::round(x.data()); }
+
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::Mask isfinite(const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::isFinite(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::Mask isinf(const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::isInfinite(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::Mask isnan(const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::isNaN(x.data()); }
+
+
 // copysign {{{1
 Vc_INTRINSIC Vc_CONST SSE::float_v copysign(SSE::float_v mag, SSE::float_v sign)
 {

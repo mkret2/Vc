@@ -150,15 +150,32 @@ namespace AvxIntrinsics
 #endif
     }
 
-    template <int offset> Vc_INTRINSIC __m128  extract128(__m256  a) { return _mm256_extractf128_ps(a, offset); }
-    template <int offset> Vc_INTRINSIC __m128d extract128(__m256d a) { return _mm256_extractf128_pd(a, offset); }
-    template <int offset> Vc_INTRINSIC __m128i extract128(__m256i a) {
-#ifdef Vc_IMPL_AVX2
-        return _mm256_extracti128_si256(a, offset);
-#else
-        return _mm256_extractf128_si256(a, offset);
-#endif
-    }
+    //Support
+    template<int offset>
+    struct extract128_impl{
+        //Only use extract functions with offset=1
+        static_assert(offset == 1);
+        static Vc_INTRINSIC __m128  extract128(__m256  a) { return _mm256_extractf128_ps(a, offset); }
+        static Vc_INTRINSIC __m128d extract128(__m256d a) { return _mm256_extractf128_pd(a, offset); }
+        static Vc_INTRINSIC __m128i extract128(__m256i a) {
+        #ifdef Vc_IMPL_AVX2
+                return _mm256_extracti128_si256(a, offset);
+        #else
+                return _mm256_extractf128_si256(a, offset);
+        #endif
+        }
+    };
+
+    template<>
+    struct extract128_impl<0>{
+        static Vc_INTRINSIC __m128  extract128(__m256  a) { return _mm256_castps256_ps128(a); }
+        static Vc_INTRINSIC __m128d extract128(__m256d a) { return _mm256_castpd256_pd128(a); }
+        static Vc_INTRINSIC __m128i extract128(__m256i a) { return _mm256_castsi256_si128(a); }
+    };
+
+    template <int offset> Vc_INTRINSIC __m128  extract128(__m256  a) { return extract128_impl<offset>::extract128(a); }
+    template <int offset> Vc_INTRINSIC __m128d extract128(__m256d a) { return extract128_impl<offset>::extract128(a); }
+    template <int offset> Vc_INTRINSIC __m128i extract128(__m256i a) { return extract128_impl<offset>::extract128(a); }
 
     /////////////////////// COMPARE OPS ///////////////////////
 #ifdef Vc_GCC
@@ -226,8 +243,8 @@ namespace AvxIntrinsics
     template <int shift> Vc_INTRINSIC Vc_CONST m256i alignr(__m256i s1, __m256i s2)
     {
         return insert128<1>(
-            _mm256_castsi128_si256(_mm_alignr_epi8(_mm256_castsi256_si128(s1),
-                                                   _mm256_castsi256_si128(s2), shift)),
+            _mm256_castsi128_si256(
+            _mm_alignr_epi8(extract128<0>(s1), extract128<0>(s2), shift)),
             _mm_alignr_epi8(extract128<1>(s1), extract128<1>(s2), shift));
     }
 #endif
@@ -264,7 +281,7 @@ namespace AvxIntrinsics
     Vc_INTRINSIC Vc_CONST __m256i name(__m256i a0)                                       \
     {                                                                                    \
         __m128i a1 = extract128<1>(a0);                                                  \
-        __m128i r0 = _mm_##name(_mm256_castsi256_si128(a0));                             \
+        __m128i r0 = _mm_##name(extract128<0>(a0));                             \
         __m128i r1 = _mm_##name(a1);                                                     \
         return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
@@ -280,7 +297,7 @@ namespace AvxIntrinsics
     {                                                                                    \
         m128i a1 = extract128<1>(a0);                                                    \
         m128i b1 = extract128<1>(b0);                                                    \
-        m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0));   \
+        m128i r0 = _mm_##name(extract128<0>(a0), extract128<0>(b0));   \
         m128i r1 = _mm_##name(a1, b1);                                                   \
         return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
@@ -288,7 +305,7 @@ namespace AvxIntrinsics
     Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m128i b0)                             \
     {                                                                                    \
         m128i a1 = extract128<1>(a0);                                                    \
-        m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), b0);                           \
+        m128i r0 = _mm_##name(extract128<0>(a0), b0);                           \
         m128i r1 = _mm_##name(a1, b0);                                                   \
         return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
@@ -296,7 +313,7 @@ namespace AvxIntrinsics
     template <int i> Vc_INTRINSIC Vc_CONST m256i name(__m256i a0)                        \
     {                                                                                    \
         m128i a1 = extract128<1>(a0);                                                    \
-        m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), i);                            \
+        m128i r0 = _mm_##name(extract128<0>(a0), i);                            \
         m128i r1 = _mm_##name(a1, i);                                                    \
         return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
@@ -338,11 +355,14 @@ namespace AvxIntrinsics
     Vc_AVX_TO_SSE_2_NEW(cmpgt_epi64)
     Vc_AVX_TO_SSE_2_NEW(unpackhi_epi16)
     Vc_AVX_TO_SSE_2_NEW(unpacklo_epi16)
+    Vc_AVX_TO_SSE_2_NEW(add_epi8)
     Vc_AVX_TO_SSE_2_NEW(add_epi16)
     Vc_AVX_TO_SSE_2_NEW(add_epi32)
     Vc_AVX_TO_SSE_2_NEW(add_epi64)
+    Vc_AVX_TO_SSE_2_NEW(sub_epi8)
     Vc_AVX_TO_SSE_2_NEW(sub_epi16)
     Vc_AVX_TO_SSE_2_NEW(sub_epi32)
+    Vc_AVX_TO_SSE_2_NEW(sub_epi64)
     Vc_AVX_TO_SSE_2_NEW(mullo_epi16)
     Vc_AVX_TO_SSE_2_NEW(sign_epi16)
     Vc_AVX_TO_SSE_2_NEW(sign_epi32)
@@ -392,23 +412,17 @@ namespace AvxIntrinsics
 
     Vc_INTRINSIC Vc_CONST int movemask_epi8(__m256i a0)
     {
-        m128i a1 = extract128<1>(a0);
-        return (_mm_movemask_epi8(a1) << 16) | _mm_movemask_epi8(_mm256_castsi256_si128(a0));
+        return (_mm_movemask_epi8(extract128<1>(a0)) << 16) | _mm_movemask_epi8(extract128<0>(a0));
     }
     template <int m> Vc_INTRINSIC Vc_CONST m256i blend_epi16(__m256i a0, __m256i b0)
     {
-        m128i a1 = extract128<1>(a0);
-        m128i b1 = extract128<1>(b0);
-        m128i r0 = _mm_blend_epi16(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0), m & 0xff);
-        m128i r1 = _mm_blend_epi16(a1, b1, m >> 8);
+        m128i r0 = _mm_blend_epi16(extract128<0>(a0), extract128<0>(b0), m & 0xff);
+        m128i r1 = _mm_blend_epi16(extract128<1>(a0), extract128<1>(b0), m >> 8);
         return insert128<1>(_mm256_castsi128_si256(r0), r1);
     }
     Vc_INTRINSIC Vc_CONST m256i blendv_epi8(__m256i a0, __m256i b0, __m256i m0) {
-        m128i a1 = extract128<1>(a0);
-        m128i b1 = extract128<1>(b0);
-        m128i m1 = extract128<1>(m0);
-        m128i r0 = _mm_blendv_epi8(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0), _mm256_castsi256_si128(m0));
-        m128i r1 = _mm_blendv_epi8(a1, b1, m1);
+        m128i r0 = _mm_blendv_epi8(extract128<0>(a0), extract128<0>(b0), extract128<0>(m0));
+        m128i r1 = _mm_blendv_epi8(extract128<1>(a0), extract128<1>(b0), extract128<1>(m0));
         return insert128<1>(_mm256_castsi128_si256(r0), r1);
     }
     // mpsadbw_epu8 (__m128i __X, __m128i __Y, const int __M)
@@ -453,6 +467,9 @@ static Vc_INTRINSIC m256i cmplt_epi8(__m256i a, __m256i b) {
 
 static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
     return cmpgt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
+}
+static Vc_INTRINSIC m256i cmplt_epu8(__m256i a, __m256i b) {
+    return cmpgt_epu8(b, a);
 }
 #if defined(Vc_IMPL_XOP)
     Vc_AVX_TO_SSE_2_NEW(comlt_epu32)
@@ -504,12 +521,22 @@ static Vc_INTRINSIC void _mm256_maskstore(unsigned int *mem, const __m256i mask,
 }
 static Vc_INTRINSIC void _mm256_maskstore(short *mem, const __m256i mask, const __m256i v) {
     using namespace AVX;
-    _mm_maskmoveu_si128(_mm256_castsi256_si128(v), _mm256_castsi256_si128(mask), reinterpret_cast<char *>(&mem[0]));
-    _mm_maskmoveu_si128(extract128<1>(v), extract128<1>(mask), reinterpret_cast<char *>(&mem[8]));
+    __m256i tmp = _mm256_loadu_si256(reinterpret_cast<__m256i *>(mem));
+    tmp = _mm256_blendv_epi8(tmp, v, mask);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(mem), tmp);
 }
 static Vc_INTRINSIC void _mm256_maskstore(unsigned short *mem, const __m256i mask, const __m256i v) {
     _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
 }
+
+static Vc_INTRINSIC void _mm256_maskstore(char *mem, const __m256i mask, const __m256i v) {
+    _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
+}
+
+static Vc_INTRINSIC void _mm256_maskstore(unsigned char *mem, const __m256i mask, const __m256i v) {
+    _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
+}
+
 
 #undef Vc_AVX_TO_SSE_1
 #undef Vc_AVX_TO_SSE_1_128
@@ -556,7 +583,7 @@ Vc_INTRINSIC void stream_store(float *mem, __m128 value, __m128 mask)
 }
 Vc_INTRINSIC void stream_store(float *mem, __m256 value, __m256 mask)
 {
-    stream_store(mem, _mm256_castps256_ps128(value), _mm256_castps256_ps128(mask));
+    stream_store(mem    , extract128<0>(value), extract128<0>(mask));
     stream_store(mem + 4, extract128<1>(value), extract128<1>(mask));
 }
 Vc_INTRINSIC void stream_store(double *mem, __m128d value, __m128d mask)
@@ -565,7 +592,7 @@ Vc_INTRINSIC void stream_store(double *mem, __m128d value, __m128d mask)
 }
 Vc_INTRINSIC void stream_store(double *mem, __m256d value, __m256d mask)
 {
-    stream_store(mem, _mm256_castpd256_pd128(value), _mm256_castpd256_pd128(mask));
+    stream_store(mem    , extract128<0>(value), extract128<0>(mask));
     stream_store(mem + 2, extract128<1>(value), extract128<1>(mask));
 }
 Vc_INTRINSIC void stream_store(void *mem, __m128i value, __m128i mask)
@@ -574,7 +601,7 @@ Vc_INTRINSIC void stream_store(void *mem, __m128i value, __m128i mask)
 }
 Vc_INTRINSIC void stream_store(void *mem, __m256i value, __m256i mask)
 {
-    stream_store(mem, _mm256_castsi256_si128(value), _mm256_castsi256_si128(mask));
+    stream_store(mem, extract128<0>(value), extract128<0>(mask));
     stream_store(static_cast<__m128i *>(mem) + 1, extract128<1>(value), extract128<1>(mask));
 }
 

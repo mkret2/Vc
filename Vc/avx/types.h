@@ -59,6 +59,8 @@ typedef Vector<int>               int_v;
 typedef Vector<unsigned int>     uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short> ushort_v;
+typedef Vector<char>            schar_v;
+typedef Vector<unsigned char>   uchar_v;
 
 template <typename T> using Mask = Vc::Mask<T, VectorAbi::Avx1Abi<T>>;
 typedef Mask<double>         double_m;
@@ -67,6 +69,8 @@ typedef Mask<int>               int_m;
 typedef Mask<unsigned int>     uint_m;
 typedef Mask<short>           short_m;
 typedef Mask<unsigned short> ushort_m;
+typedef Mask<char>            schar_m;
+typedef Mask<unsigned char>   uchar_m;
 
 template <typename T> struct Const;
 
@@ -85,6 +89,8 @@ using    int_v = Vector<   int>;
 using   uint_v = Vector<  uint>;
 using  short_v = Vector< short>;
 using ushort_v = Vector<ushort>;
+using  schar_v = Vector< char>;
+using  uchar_v = Vector<uchar>;
 
 template <typename T> using Mask = Vc::Mask<T, VectorAbi::Avx>;
 using double_m = Mask<double>;

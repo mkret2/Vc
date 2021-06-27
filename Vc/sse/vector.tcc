@@ -45,6 +45,8 @@ Vc_INTRINSIC SSE::   int_m operator==(SSE::   int_v a, SSE::   int_v b) { return
 Vc_INTRINSIC SSE::  uint_m operator==(SSE::  uint_v a, SSE::  uint_v b) { return _mm_cmpeq_epi32(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: short_m operator==(SSE:: short_v a, SSE:: short_v b) { return _mm_cmpeq_epi16(a.data(), b.data()); }
 Vc_INTRINSIC SSE::ushort_m operator==(SSE::ushort_v a, SSE::ushort_v b) { return _mm_cmpeq_epi16(a.data(), b.data()); }
+Vc_INTRINSIC SSE::schar_m operator==(SSE:: schar_v a, SSE:: schar_v b) { return _mm_cmpeq_epi8(a.data(), b.data()); }
+Vc_INTRINSIC SSE::uchar_m operator==(SSE::uchar_v a, SSE::uchar_v b) { return _mm_cmpeq_epi8(a.data(), b.data()); }
 
 Vc_INTRINSIC SSE::double_m operator!=(SSE::double_v a, SSE::double_v b) { return _mm_cmpneq_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator!=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmpneq_ps(a.data(), b.data()); }
@@ -52,6 +54,8 @@ Vc_INTRINSIC SSE::   int_m operator!=(SSE::   int_v a, SSE::   int_v b) { return
 Vc_INTRINSIC SSE::  uint_m operator!=(SSE::  uint_v a, SSE::  uint_v b) { return not_(_mm_cmpeq_epi32(a.data(), b.data())); }
 Vc_INTRINSIC SSE:: short_m operator!=(SSE:: short_v a, SSE:: short_v b) { return not_(_mm_cmpeq_epi16(a.data(), b.data())); }
 Vc_INTRINSIC SSE::ushort_m operator!=(SSE::ushort_v a, SSE::ushort_v b) { return not_(_mm_cmpeq_epi16(a.data(), b.data())); }
+Vc_INTRINSIC SSE::schar_m operator!=(SSE::schar_v a, SSE::schar_v b) { return not_(_mm_cmpeq_epi8(a.data(), b.data())); }
+Vc_INTRINSIC SSE::uchar_m operator!=(SSE::uchar_v a, SSE::uchar_v b) { return not_(_mm_cmpeq_epi8(a.data(), b.data())); }
 
 Vc_INTRINSIC SSE::double_m operator> (SSE::double_v a, SSE::double_v b) { return _mm_cmpgt_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator> (SSE:: float_v a, SSE:: float_v b) { return _mm_cmpgt_ps(a.data(), b.data()); }
@@ -69,6 +73,14 @@ Vc_INTRINSIC SSE::ushort_m operator> (SSE::ushort_v a, SSE::ushort_v b) {
     return SSE::cmpgt_epu16(a.data(), b.data());
 #else
     return _mm_cmpgt_epi16(a.data(), b.data());
+#endif
+}
+Vc_INTRINSIC SSE::schar_m operator> (SSE::schar_v a, SSE::schar_v b) { return _mm_cmpgt_epi8(a.data(), b.data()); }
+Vc_INTRINSIC SSE::uchar_m operator> (SSE::uchar_v a, SSE::uchar_v b) {
+#ifndef USE_INCORRECT_UNSIGNED_COMPARE
+    return SSE::cmpgt_epu8(a.data(), b.data());
+#else
+    return _mm_cmpgt_epi8(a.data(), b.data());
 #endif
 }
 
@@ -90,6 +102,14 @@ Vc_INTRINSIC SSE::ushort_m operator< (SSE::ushort_v a, SSE::ushort_v b) {
     return _mm_cmplt_epi16(a.data(), b.data());
 #endif
 }
+Vc_INTRINSIC SSE::schar_m operator< (SSE::schar_v a, SSE::schar_v b) { return _mm_cmplt_epi8(a.data(), b.data()); }
+Vc_INTRINSIC SSE::uchar_m operator< (SSE::uchar_v a, SSE::uchar_v b) { 
+#ifndef USE_INCORRECT_UNSIGNED_COMPARE
+    return SSE::cmpgt_epu8(b.data(), a.data());
+#else
+    return _mm_cmplt_epi8(a.data(), b.data());
+#endif
+}
 
 Vc_INTRINSIC SSE::double_m operator>=(SSE::double_v a, SSE::double_v b) { return _mm_cmpnlt_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator>=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmpnlt_ps(a.data(), b.data()); }
@@ -97,6 +117,8 @@ Vc_INTRINSIC SSE::   int_m operator>=(SSE::   int_v a, SSE::   int_v b) { return
 Vc_INTRINSIC SSE::  uint_m operator>=(SSE::  uint_v a, SSE::  uint_v b) { return !(a < b); }
 Vc_INTRINSIC SSE:: short_m operator>=(SSE:: short_v a, SSE:: short_v b) { return !(a < b); }
 Vc_INTRINSIC SSE::ushort_m operator>=(SSE::ushort_v a, SSE::ushort_v b) { return !(a < b); }
+Vc_INTRINSIC SSE::schar_m operator>=(SSE:: schar_v a, SSE:: schar_v b) { return !(a < b); }
+Vc_INTRINSIC SSE::uchar_m operator>=(SSE:: uchar_v a, SSE:: uchar_v b) { return !(a < b); }
 
 Vc_INTRINSIC SSE::double_m operator<=(SSE::double_v a, SSE::double_v b) { return _mm_cmple_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator<=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmple_ps(a.data(), b.data()); }
@@ -104,6 +126,8 @@ Vc_INTRINSIC SSE::   int_m operator<=(SSE::   int_v a, SSE::   int_v b) { return
 Vc_INTRINSIC SSE::  uint_m operator<=(SSE::  uint_v a, SSE::  uint_v b) { return !(a > b); }
 Vc_INTRINSIC SSE:: short_m operator<=(SSE:: short_v a, SSE:: short_v b) { return !(a > b); }
 Vc_INTRINSIC SSE::ushort_m operator<=(SSE::ushort_v a, SSE::ushort_v b) { return !(a > b); }
+Vc_INTRINSIC SSE::schar_m operator<=(SSE:: schar_v a, SSE:: schar_v b) { return !(a > b); }
+Vc_INTRINSIC SSE::uchar_m operator<=(SSE:: uchar_v a, SSE:: uchar_v b) { return !(a > b); }
 
 // bitwise operators {{{1
 template <typename T>
@@ -640,6 +664,10 @@ template <> Vc_INTRINSIC  SSE::short_v  SSE::short_v::interleaveLow ( SSE::short
 template <> Vc_INTRINSIC  SSE::short_v  SSE::short_v::interleaveHigh( SSE::short_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
 template <> Vc_INTRINSIC SSE::ushort_v SSE::ushort_v::interleaveLow (SSE::ushort_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
 template <> Vc_INTRINSIC SSE::ushort_v SSE::ushort_v::interleaveHigh(SSE::ushort_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC  SSE::schar_v  SSE::schar_v::interleaveLow ( SSE::schar_v x) const { return _mm_unpacklo_epi8(data(), x.data()); }
+template <> Vc_INTRINSIC  SSE::schar_v  SSE::schar_v::interleaveHigh( SSE::schar_v x) const { return _mm_unpackhi_epi8(data(), x.data()); }
+template <> Vc_INTRINSIC SSE::uchar_v SSE::uchar_v::interleaveLow (SSE::uchar_v x) const { return _mm_unpacklo_epi8(data(), x.data()); }
+template <> Vc_INTRINSIC SSE::uchar_v SSE::uchar_v::interleaveHigh(SSE::uchar_v x) const { return _mm_unpackhi_epi8(data(), x.data()); }
 // }}}1
 // generate {{{1
 template <> template <typename G> Vc_INTRINSIC SSE::double_v SSE::double_v::generate(G gen)

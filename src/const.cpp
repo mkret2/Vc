@@ -278,6 +278,7 @@ namespace SSE
 
     // cacheline 2
     alignas(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
+    alignas(16) const unsigned char c_general::one8[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     alignas(16) const unsigned short c_general::one16[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
     alignas(16) const unsigned int c_general::one32[4] = { 1, 1, 1, 1 };
     alignas(16) const float c_general::oneFloat[4] = { 1.f, 1.f, 1.f, 1.f };

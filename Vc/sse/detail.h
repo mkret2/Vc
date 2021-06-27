@@ -163,6 +163,24 @@ Vc_INTRINSIC __m128i load(const ushort *mem, F f,
 {
     return load16(mem, f);
 }
+
+template <typename V, typename DstT, typename F>
+Vc_INTRINSIC __m128i
+load(const char *mem, F f,
+     enable_if<(std::is_same<DstT, char>::value && std::is_same<V, __m128i>::value)> =
+         nullarg)
+{
+    return load16(mem, f);
+}
+
+template <typename V, typename DstT, typename F>
+Vc_INTRINSIC __m128i
+load(const uchar *mem, F f,
+     enable_if<(std::is_same<DstT, uchar>::value && std::is_same<V, __m128i>::value)> =
+         nullarg)
+{
+    return load16(mem, f);
+}
 #endif  // Vc_MSVC
 
 // generic load{{{2

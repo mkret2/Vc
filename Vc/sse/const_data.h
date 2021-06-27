@@ -47,6 +47,7 @@ struct c_general
     alignas(16) static const unsigned int highMaskFloat[4];
     alignas(16) static const short minShort[8];
 
+    alignas(16) static const unsigned char one8[16];
     alignas(16) static const unsigned short one16[8];
     alignas(16) static const unsigned int one32[4];
     alignas(16) static const float oneFloat[4];

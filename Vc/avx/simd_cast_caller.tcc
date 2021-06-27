@@ -44,7 +44,7 @@ template <typename T>
 template <typename U>
 Vc_INTRINSIC Mask<T, VectorAbi::Avx>::Mask(U &&rhs,
                                  Common::enable_if_mask_converts_explicitly<T, U>)
-    : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
+    : d(simd_cast<Mask>(std::forward<U>(rhs)))
 {
 }
 #endif  // Vc_IS_VERSION_1
