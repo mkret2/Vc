@@ -214,7 +214,7 @@ public:
     }
 
         Vc_INTRINSIC Vc_PURE int count() const { return Detail::popcnt16(toInt()); }
-        Vc_INTRINSIC Vc_PURE int firstOne() const { return _bit_scan_forward(toInt()); }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;

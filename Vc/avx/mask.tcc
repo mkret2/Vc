@@ -109,6 +109,25 @@ template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isMix() const {
     }
 }
 
+// firstOne {{{1
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T, VectorAbi::Avx>::firstOne() const
+{
+    const int mask = toInt();
+#ifdef _MSC_VER
+    unsigned long bit;
+    _BitScanForward(&bit, mask);
+#else
+    int def = Size;
+    int bit;
+    __asm__(
+        "bsf %[mask], %[bit];"
+        "cmovz %[def], %[bit];"
+        :[bit] "=r" (bit)
+        :[mask] "r"(mask), [def] "r"(def));
+#endif
+    return bit;
+}
+
 // generate {{{1
 template <typename M, typename G>
 Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 32>)
