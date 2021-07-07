@@ -37,8 +37,15 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 #ifdef Vc_COMMON_MATH_H_INTERNAL
 
 constexpr float log2_e = 1.44269504088896341f;
-constexpr float MAXLOGF = 88.72283905206835f;
-constexpr float MINLOGF = -103.278929903431851103f; /* log(2^-149) */
+/**
+ * These constants are adjusted to account for single-precision floating point.
+ * The original are for double precision:
+ *
+ * constexpr float MAXLOGF = 88.72283905206835f;
+ * constexpr float MINLOGF = -103.278929903431851103f; /* log(2^-149) */
+ */
+constexpr float MAXLOGF = 88.722831726074219f; /* log(2^127.99998474121094f) */
+constexpr float MINLOGF = -88.029685974121094f; /* log(2^-126.99999237060547f) */
 constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
 template <typename Abi, typename = enable_if<std::is_same<Abi, VectorAbi::Sse>::value ||
