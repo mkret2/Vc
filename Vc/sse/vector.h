@@ -135,6 +135,8 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         {
         }
 
+        Vc_INTRINSIC explicit Vector(reference a) : Vector(static_cast<EntryType>(a)) {}
+
 #include "../common/loadinterface.h"
 #include "../common/storeinterface.h"
 
