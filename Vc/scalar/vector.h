@@ -105,6 +105,8 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         }
 #endif
 
+        Vc_INTRINSIC explicit Vector(reference a) : Vector(static_cast<EntryType>(a)) {}
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vc_INTRINSIC Vector(EntryType a) : m_data(a) {}

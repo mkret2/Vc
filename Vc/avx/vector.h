@@ -160,6 +160,8 @@ public:
             explicit Vector(U &&x) Vc_INTRINSIC_R;
 #endif
 
+        Vc_INTRINSIC explicit Vector(reference a) : Vector(static_cast<EntryType>(a)) {}
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         Vc_INTRINSIC Vector(EntryType a) : d(Detail::avx_broadcast(a)) {}

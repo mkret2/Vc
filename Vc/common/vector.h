@@ -289,6 +289,7 @@ public:
     template <typename U>
     inline Vector(U a, enable_if<std::is_same<U, int>::value &&
                                  !std::is_same<U, EntryType>::value> = nullarg);
+    inline explicit Vector(reference a);
     ///@}
 
     /**
